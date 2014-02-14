@@ -1,0 +1,119 @@
+<h1 id="写一些vim插件">写一些Vim插件</h1>
+<p>起源：<a href="evernote:///view/997589/s9/663ee65e-7d2a-4dd1-bbe7-9fe294aa947d/663ee65e-7d2a-4dd1-bbe7-9fe294aa947d/">海波和王欣请我为PMO做Vim分享（培训）</a></p>
+<p>|</p>
+<p>需求：</p>
+<ol>
+<li>头文件，源码文件和单测文件之间的互相跳转 - Done</li>
+<li>百度（Google）风格的C++缩进，尤其是private的处理（是难点）- Done</li>
+<li>更多的代码补全（如blade）-</li>
+<li>include的排序（参考：help sort）- Done</li>
+<li>Blade与Vim的集成（参考：help write-compiler-plugin）- Done</li>
+<li>FF的自动修正 - 延后</li>
+<li>自动生成单测Case框架</li>
+<li>自动在.cpp中生成函数框架</li>
+<li>快速打开帮助（Vim与man的集成）</li>
+<li>一键折叠所有代码
+<ul>
+<li>延后。考虑到tagbar可以实现类似的功能，所以暂时不搞。</li>
+</ul></li>
+<li>ctag/cscope/omini的代码补全的范围扩大到BLADE_ROOT</li>
+<li>快速打开文件</li>
+<li>一键注释函数 - Done</li>
+<li>BUILD文件的缩进（终于搞定了，原来是没加上&quot;filetype plugin indent on”，伤不起啊！）</li>
+</ol>
+<p>|</p>
+<p><strong>1. 三类文件间的跳转插件</strong></p>
+<hr />
+<p>决定在a.vim基础上修改</p>
+<p>|</p>
+<p>xxx.h xxx.cpp -&gt; xxx_test.cpp大体流程：</p>
+<ol>
+<li>获取base name；</li>
+<li>拼出xxx_test.cpp；</li>
+<li>打开它；</li>
+</ol>
+<p>目前已经能通过AUT指令在.h/.cpp和_test.cpp之间跳转。</p>
+<p><script type="text/javascript">
+<!--
+h='&#x67;&#x69;&#116;&#104;&#x75;&#98;&#46;&#x63;&#x6f;&#x6d;';a='&#64;';n='&#x67;&#x69;&#116;';e=n+a+h;
+document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'">'+e+'<\/'+'a'+'>');
+// -->
+</script><noscript>&#x67;&#x69;&#116;&#32;&#x61;&#116;&#32;&#x67;&#x69;&#116;&#104;&#x75;&#98;&#32;&#100;&#x6f;&#116;&#32;&#x63;&#x6f;&#x6d;</noscript>:Windriver/a.vim.git </p>
+<p>|</p>
+<p><strong>2. 百度风格的C++缩进 - 2013-12-28 22:43:36</strong></p>
+<hr />
+<p>换用QQ的indent/cpp.vim后，发现namespace的问题解决了，但是还有几个小问题：</p>
+<ol>
+<li>for循环折行后的缩进。由于Baidu规范的规定是4空格缩进，for循环折行后，循环体与for语句搞到一起了。而google的是2空格缩进，所以google的for循环缩进很好看。</li>
+<li>private加上:后可以自动与上一行保持缩进。但是我希望是像google一样半缩进
+<ul>
+<li>配置setl cinoptions=g2，并在indent/cpp.vim的49行加上elseif l:pline =~# '^\s*\(public\:\|private\:\|protected\:\).*’       let l:retv -= 2能部分解决，但是还有小bug（我决定先这样子了，等以后再完善）</li>
+</ul></li>
+<li></li>
+</ol>
+<p>总结：</p>
+<p>indent/cpp.vim的主要功能是搞定namespace，template的缩进，以及跳过注释。cindent和cinoptions才是解决缩进问题的主力。</p>
+<p>|</p>
+<p><strong>3. include的排序 - 2013-12-28 23:25:10</strong></p>
+<hr />
+<p> Done</p>
+<p>|</p>
+<p>看起来很成功！</p>
+<p>|</p>
+<p><strong>4. 去空行的插件 - 2013-12-29 15:12:19</strong></p>
+<hr />
+<p>Done</p>
+<p>|</p>
+<p>我写的函数的功能包括：</p>
+<ol>
+<li>删除多余空行；（无法去除文件尾部的双行，所以为了实现功能2，必须执行两次：silent! :.g/^$/d）</li>
+<li>删除文件末尾的空行；</li>
+<li>删除行尾空格；</li>
+</ol>
+<p>|</p>
+<p><strong>5. Blade与vim的集成</strong></p>
+<hr />
+<p>主要是blade对quickfix功能的支持情况。问了韩超，他说知道有，但是不知道具体那条指令。后来在Github上<a href="https://github.com/chen3feng/typhoon-blade/blob/master/doc/user_manual_zh_CN.md">blade的中文说明书上</a>确认了blade确实支持quickfix，然后又在QQ的.vimrc中找到了set local makeprg=blade的指令，然后好help makeprg，help quickfix，终于搞定了这块。</p>
+<p>|</p>
+<p>使用流程：</p>
+<ol>
+<li>:set makeprg=blade</li>
+<li>:make build</li>
+<li>:cw &quot;打开quickfix窗口</li>
+<li>:cn :cp “下一个/上一个错误</li>
+</ol>
+<p>|</p>
+<p><strong>6. Vim与man的集成</strong></p>
+<hr />
+<p>| <a href="http://stackoverflow.com/questions/2272759/looking-up-c-documentation-inside-of-vim/2337620#2337620">looking up c++ documentation inside of vim</a> </p>
+<p>|</p>
+<p>查找了N多安装C++ manpage的方法，都未果。决定先放弃。</p>
+<p>|</p>
+<p>不甘心，再搜了下，终于在<a href="http://bzhao.xicp.net:9009/?p=243">这篇博客</a>上找到了<a href="http://ftp.tsukuba.wide.ad.jp/software/gcc/libstdc++/doxygen/libstdc++-api.20131202.man.tar.bz2">C++ manpage的下载地址</a>。在mac上解压，并把文件拷贝到/usr/share/man/man3/下面，终于可以用man C++的。但是用法特别蛋疼，例如：</p>
+<p>man 3 std::vector</p>
+<p>man出来的页面也很不易读，感觉有还不如没有好。我想我以后可能会搞一个man系统。</p>
+<p>|</p>
+<p><strong>7. 一键注释函数或者代码块</strong></p>
+<hr />
+<p>随手写了一个：</p>
+<p>nmap &lt;leader&gt;cf viw$%,c&lt;space&gt;&lt;cr&gt;&lt;c-o&gt;  </p>
+<p>第一次运行是注释，再次运行是解注释。</p>
+<p>|</p>
+<p>这个函数还不完美，但是先这样，以后再改进（仍然是20%-80%策略）</p>
+<p>|</p>
+<p><strong>8. 快速打开文件</strong></p>
+<hr />
+<p>再次尝试了BufExplorer和lookupfile，两个都不错。后者的话，感觉反应慢，但是我按c-p，就会立刻弹出结果，应该是可以设置反应时间的。</p>
+<p>|</p>
+<p><strong>9. 自动生成单测Case框架</strong></p>
+<hr />
+<p>先写出正则：</p>
+<p>\(class \)\@=.*\( : public\)\@&lt;= </p>
+<p>search参数：</p>
+<p>'b'     search backward instead of forward </p>
+<p>'W'     don't wrap around the end of the file</p>
+<p>'n'     do Not move the cursor </p>
+<p>|</p>
+<p>完成了GetUnittestClassName()函数，用到了search和matchlist。用起来很赞！</p>
+<p>|</p>
+<p>|</p>
